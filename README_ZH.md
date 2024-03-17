@@ -7,193 +7,187 @@
   <a href="https://twitter.com/fuergaosi" target="_blank">
     <img alt="Twitter: fuergaosi" src="https://img.shields.io/twitter/follow/fuergaosi.svg?style=social" />
   </a>
+  <a href="https://discord.gg/8fXNrxwUJH" target="blank">
+    <img src="https://img.shields.io/discord/1058994816446369832?label=Join%20Community&logo=discord&style=flat-square" alt="join discord community of github profile readme generator"/>
+  </a>
 </p>
 
 > 在微信上迅速接入 ChatGPT，让它成为你最好的助手！  
 > [English](README.md) | 中文文档
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/BHJD6L?referralCode=FaJtD_)  
-
-如果你没有自己的服务器或者想体验快速部署，可使用 Railway 进行部署，参见 [Railway 部署](#railway-部署)。
-
-# 2022.12.12 更新
-昨天（2022.12.12），OpenAI 加入了CloudFlare认证措施。
-
-这使得本项目在运行是会出现 `⚠️ No chatgpt item in pool` 的错误。
-
-我们正在积极寻找有效的解决方案，如果你有好的解决方案，欢迎贡献！
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/dMLG70?referralCode=bIYugQ)
 
 ## 🌟 功能点
 
-- [x] 通过 wechaty，将 ChatGPT 接入微信
-- [x] 创建 OpenAI 的账户池
-- [x] 支持通过代理登陆 OpenAI
-- [x] 加入了持续对话的功能（每一个微信用户都保持自己的对话上下文）
-- [x] 加入 Dockerfile
-- [x] 发布到 Docker.hub
-- [x] 通过 Railway 进行部署
-- [x] 实现 OpenAI 账户池的热加载
-- [ ] 当 OpenAI 返回码为 429/503 时自动重试
+- 使用 WeChat 和 ChatGPT 进行互动：
+   - 基于 [wechaty](https://github.com/wechaty/wechaty) 和 [Official API](https://openai.com/blog/introducing-chatgpt-and-whisper-apis) 在微信中使用 ChatGPT
+   - 支持多轮对话
+   - 支持[命令](#-命令)设置
 
-## 在Linux上通过Docker使用（✅ 推荐）
+- 部署和配置选项：
+   - 提供 Dockerfile，可以通过 [docker](#通过docker使用) 进行部署
+   - 支持使用 [docker compose](#通过docker-compose使用) 进行部署
+   - 支持在 [Railway](#使用railway进行部署) 和 [Fly.io](#通过flyio进行部署) 上部署
+
+- 其他功能：
+   - 支持 [Dall·E](https://labs.openai.com/)
+   - 支持 [whisper](https://openai.com/blog/introducing-chatgpt-and-whisper-apis)
+   - 支持设置 prompt
+   - 支持代理（开发中）
+
+## 🚀 使用
+
+- [在 Railway 部署](#使用railway进行部署)(PaaS, 免费, 稳定, ✅推荐)
+- [在 Fly.io 部署](#通过flyio进行部署)(PaaS, 免费, ✅推荐)
+- [使用 Docker 部署](#通过docker使用)(自托管, 稳定, ✅推荐)
+- [使用 Docker Compose 部署](#通过docker-compose使用)(自托管, 稳定, ✅推荐)
+- [使用 NodeJS 部署](#使用nodejs运行)
+
+## 使用Railway进行部署
+
+> Railway 是一个免费的 PaaS 平台，5刀以内的账单免费或者每个月500小时的运行时间
+
+1. 点击 [Railway](https://railway.app/template/dMLG70?referralCode=bIYugQ) 按钮，进入 Railway 部署页面
+2. 点击 `Deploy Now` 按钮，进入 Railway 部署页面
+3. 填写 仓库名称和 `OPENAI_API_KEY`(需要连接 GitHub 账号)
+4. 点击 `Deploy` 按钮
+5. 点击 `View Logs` 按钮，等待部署完成
+
+## 通过Fly.io进行部署
+
+> 请为应用程序分配 512 MB 内存，否则可能会出现内存溢出
+
+> Fly.io 5刀以内的账单免费(免费计划的3个256MB的应用不在账单内)也就是可以同时可以部署 `1*512MB + 3*256MB`
+
+1. 安装 [flyctl](https://fly.io/docs/getting-started/installing-flyctl/)
+   ```shell
+    # macOS
+    brew install flyctl
+    # Windows
+    scoop install flyctl
+    # Linux
+    curl https://fly.io/install.sh | sh
+   ```
+2. 克隆项目并进入项目目录
+   ```shell
+   git clone https://github.com/fuergaosi233/wechat-chatgpt.git && cd wechat-chatgpt
+   ```
+3. 创建应用
+   ```shell
+   ➜ flyctl launch 
+    ? Would you like to copy its configuration to the new app? No
+    ? App Name (leave blank to use an auto-generated name): <YOUR APP NAME>
+    ? Select region: <YOUR CHOOSE REGION>
+    ? Would you like to setup a Postgresql database now? No
+    ? Would you like to deploy now? No
+   ```
+4. 配置环境变量
+   ```shell
+   flyctl secrets set OPENAI_API_KEY="<YOUR OPENAI API KEY>" MODEL="<CHATGPT-MODEL>"
+   ```
+5. 部署应用
+   ```shell
+   flyctl deploy
+   ```
+
+## 通过Docker使用
 
 ```sh
-cp config.yaml.example config.yaml
-# 在当前目录创建并修改config.yaml
-# 在Linux或WindowsPowerShell上运行如下命令
-docker run -d --name wechat-chatgpt -v $(pwd)/config.yaml:/app/config.yaml holegots/wechat-chatgpt:latest
+# 拉取镜像
+docker pull holegots/wechat-chatgpt:latest
+# 运行容器
+docker run -it --name wechat-chatgpt \
+    -e OPENAI_API_KEY=<YOUR OPENAI API KEY> \
+    -e MODEL="gpt-3.5-turbo" \
+    -e CHAT_PRIVATE_TRIGGER_KEYWORD="" \
+    -v $(pwd)/data:/app/data/wechat-assistant.memory-card.json \
+    holegots/wechat-chatgpt:latest
 # 使用二维码登陆
 docker logs -f wechat-chatgpt
 ```
 
-## 在Windows上通过Docker使用
+> 如何获取 OPENAI API KEY？请参考 [OpenAI API](https://platform.openai.com/account/api-keys)。
+
+## 通过docker compose使用
 
 ```sh
-# 在当前目录创建并修改config.yaml
-# 在WindowsPowerShell中运行如下命令
-docker run -d --name wechat-chatgpt -v $(pwd)/config.yaml:/app/config.yaml holegots/wechat-chatgpt:latest
-# 在Windows command line (cmd)中, 您需要像这样修改上述代码的挂载目录:
-docker run -d --name wechat-chatgpt -v %cd%/config.yaml:/app/config.yaml holegots/wechat-chatgpt:latest
-# 通过二维码登录
-docker logs -f wechat-chatgpt
-```
-
-## 更新Docker镜像版本
-
-```sh
-docker pull holegots/wechat-chatgpt:latest
-docker stop wechat-chatgpt
-docker rm wechat-chatgpt
+# 根据模板拷贝配置文件
+cp .env.example .env
+# 使用你喜欢的文本编辑器修改配置文件
+vim .env
 # 在Linux或WindowsPowerShell上运行如下命令
-docker run -d --name wechat-chatgpt -v $(pwd)/config.yaml:/app/config.yaml holegots/wechat-chatgpt:latest
-# 在Windows command line (cmd)中, 您需要像这样修改上述代码的挂载目录:
-docker run -d --name wechat-chatgpt -v %cd%/config.yaml:/app/config.yaml holegots/wechat-chatgpt:latest
-# 通过二维码登录
+docker compose up -d
+# 使用二维码登陆
 docker logs -f wechat-chatgpt
 ```
 
-## 安装
+## 使用NodeJS运行
+
+> 请确认安装的NodeJS版本为18.0.0以上
 
 ```sh
-npm install && poetry install
-```
-
-## 手动安装
-
-### 复制配置文件
-
-将配置文件复制一份以配置您的项目
-
-```sh
-cp config.yaml.example config.yaml
-```
-
-### 获取 OpenAI 的账户并配置到项目中
-
-> 如果你没有 OpenAI 的账号，并且您在无法访问 OpenAI 的国家或地区，你可以查看[here](https://mirror.xyz/boxchen.eth/9O9CSqyKDj4BKUIil7NC1Sa1LJM-3hsPqaeW_QjfFBc).
-
-#### **配置方法 A：使用账号密码**
-
-可以在配置文件中输入你的账号密码，格式如下
-
-```yaml
-chatGPTAccountPool:
-  - email: <your email>
-    password: <your password>
-# 如果你希望只有一些关键字可以在私人聊天中触发chatgpt，你可以这样设置:
-chatPrivateTiggerKeyword: ""
-```
-
-⚠️ 触发关键字必须出现在接收到的消息的第一个位置⚠️
-
-请确保您的终端网络可以登陆 OpenAI。如果登陆失败，请尝试使用代理或使用 SessionToken 方法配置
-
-**设置代理:**
-
-```sh
-export http_proxy=<Your Proxy>
-```
-
-#### **B: 使用 Session Token**
-
-如果您无法使用账号密码登陆您的 OpenAI 账户，或者您的终端网络不支持连接到 OpenAI，那么您可以尝试使用 Session Token，请根据如下指示获取：
-
-1. 前往 <https://chat.openai.com/chat> 并登陆。
-2. 按下 F12 打开开发者工具.
-3. 点击 Application 选项卡 > Cookies.
-   ![image](docs/images/session-token.png)
-4. 复制 \_\_Secure-next-auth.session-token 的值，并且以如下方式配置到您的项目中：
-
-```yaml
-chatGPTAccountPool:
-  - session_token: <your session_token>
-```
-
-### 启动项目
-
-```sh
+# 克隆项目
+git clone https://github.com/fuergaosi233/wechat-chatgpt.git && cd wechat-chatgpt
+# 安装依赖
+npm install
+# 编辑配置
+cp .env.example .env
+vim .env # 使用你喜欢的文本编辑器修改配置文件
+# 启动项目
 npm run dev
+# 如果您是初次登陆，那么需要扫描二维码
 ```
 
-如果您是初次登陆，那么需要扫描二维码
+> 请确保您的账号可以登陆 [网页版微信](https://wx.qq.com/)。
 
-## 使用 Railway 部署
+## 📝 Environment Variables
 
-[Railway](https://railway.app/) 是一个部署平台，您可以在其上配置基础架构，在本地使用该基础架构进行开发，然后将其部署到云端。本部分将描述如何快速使用 Railway 部署一个 wechat-chatgpt 项目。  
+| name                     | default                | example                                        | description                                                 |
+|--------------------------|------------------------|------------------------------------------------|-------------------------------------------------------------|
+| API                      | https://api.openai.com |                                                | 自定义ChatGPT API 地址                                           |
+| OPENAI_API_KEY           | 123456789              | sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX | [创建你的 API 密钥](https://platform.openai.com/account/api-keys) |
+| MODEL                    | gpt-3.5-turbo          |                                                | 要使用的模型ID, 目前仅支持`gpt-3.5-turbo` 和 `gpt-3.5-turbo-0301`       |
+| TEMPERATURE              | 0.6                    |                                                | 在0和2之间。较高的数值如0.8会使 ChatGPT 输出更加随机，而较低的数值如0.2会使其更加稳定。        |
+| CHAT_TRIGGER_RULE        |                        |                                                | 私聊触发规则                                                      |
+| DISABLE_GROUP_MESSAGE    | true                   |                                                | 禁用在群聊里使用ChatGPT                                             |
+| CHAT_PRIVATE_TRIGGER_KEYWORD |                        |                                                | 在私聊中触发ChatGPT的关键词, 默认是无需关键词即可触发                             |
+| BLOCK_WORDS              | "VPN"                  | "WORD1,WORD2,WORD3"                            | 聊天屏蔽关键词(同时在群组和私聊中生效, 避免 bot 用户恶意提问导致封号                      |
+| CHATGPT_BLOCK_WORDS      | "VPN"                  | "WORD1,WORD2,WORD3"                            | ChatGPT回复屏蔽词, 如果ChatGPT的回复中包含了屏蔽词, 则不回复                     |
 
-首先，您需要注册一个 Railway 帐户，并使用 GitHub 验证登录。  
+## 📝 使用自定义ChatGPT API
+> https://github.com/fuergaosi233/openai-proxy
+```shell
+# 克隆项目
+git clone https://github.com/fuergaosi233/openai-proxy
+# 安装依赖
+npm install && npm install -g wrangler && npm run build
+# 部署到 CloudFlare Workers
+npm run deploy
+# 自定义域名(可选)
+添加 `Route`` 到 `wrangler.toml`
+routes = [
+	{ pattern = "Your Custom Domain", custom_domain = true },
+]
+```
 
-然后点击下面的一键部署按钮进行部署。  
+## ⌨️ 命令
+> 在微信聊天框中输入
+```shell
+/cmd help # 显示帮助信息
+/cmd prompt <PROMPT> # 设置ChatGPT Prompt
+/cmd clear # 清除WeChat-ChatGPT保存的会话记录
+```
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/BHJD6L?referralCode=FaJtD_)
+## ✨ Contributor
 
-完成一些验证操作后，就可以开始部署了。您将看到以下界面：  
-
-![railway-deployment](docs/images/railway-deployment.png)  
-
-您需要配置一些环境变量：  
-
-- **CHAT_GPT_EMAIL** ：您的 OpenAI 帐户电子邮件，如果您有 session_token，则可不填。
-
-- **CHAT_GPT_PASSWORD** ：您的 OpenAI 帐户密码，如果您有 session_token，则可不填。
-
-- **CHAT_GPT_SESSION_TOKEN** ：您的 OpenAI 帐户 session_token，如果您有电子邮件和密码，则可选。请参见 [这里](#b-使用-session-token) 获取 token。
-
-- **CHAT_GPT_RETRY_TIMES** ：当 OpenAI API 返回 429 或 503 时重试的次数。
-
-- **CHAT_PRIVATE_TRIGGER_KEYWORD** ：如果您希望只有一些关键字才能在私人聊天中触发 chatgpt，则可以设置它。
-
-点击“部署”按钮，您的服务将立即开始部署。以下界面出现表示部署已经开始：  
-
-![railway-deploying](docs/images/railway-deploying.png)  
-
-当部署过程显示为成功后，点击查看日志，在部署日志中找到微信登录链接：  
-
-![railway-deployed](docs/images/railway-deployed.png)
-
-点击链接，使用准备好的微信扫码登录。
-
-成功登录并开始发送和接收消息（此过程可能需要几分钟）：  
-
-![railway-success](docs/images/railway-succeed.png)
-
-此外，在部署中，您可能会遇到以下问题：
-
-- **Error: ⚠️ No chatgpt item in pool**：此错误表示验证信息有问题。您可以从以下几个方面解决此问题：1.检查 token 或 openAI 账号和密码是否正确填写。2. token 可能已经过期（经验表明 token 的过期时间为**24**小时），您可以到 chatGPT 官网重新获取 token。3. 重新部署当前服务。请注意，应在铁路仪表板的 **Variables** 页面上修改上述内容。
-- **部署完成后，不会生成二维码**。尝试**刷新**页面，再次查看 Deploy Logs 面板是否生成了链接和二维码。
-- **生成的二维码无法扫描**。在生成的二维码上，有一个链接可以点击扫描二维码。
-- **消息反馈缓慢**。由于 Railway 的服务器部署在海外，消息反馈延迟会有所增加，但仍在可接受范围内。如果您对时间敏感，则可以使用自己的服务器部署。
-
-## 作者
-
-👤 **holegots**
-
-- Twitter: [@fuergaosi](https://twitter.com/fuergaosi)
-- GitHub: [@fuergaosi233](https://github.com/fuergaosi233)
+<a href="https://github.com/fuergaosi233/wechat-chatgpt/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=fuergaosi233/wechat-chatgpt" />
+</a>
 
 ## 🤝 为项目添砖加瓦
 
-欢迎提出 Contributions, issues 与 feature requests!<br />随时查看 [issues page](https://github.com/fuergaosi233/wechat-chatgpt/issues).
+欢迎提出 Contributions, issues 与 feature requests!<br />
+随时查看 [issues page](https://github.com/fuergaosi233/wechat-chatgpt/issues).
 
 ## 感谢支持 🙏
 
